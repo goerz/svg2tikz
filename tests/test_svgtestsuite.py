@@ -2,6 +2,7 @@
 """
 Test conversion of the W3C SVG Test Suite. 
 """
+from __future__ import print_function
 
 import os
 import sys

@@ -12,6 +12,8 @@ SVG files from the command line.
 
 Author: Kjell Magne Fauske
 """
+from __future__ import division
+from __future__ import print_function
 
 # Copyright (C) 2008, 2009, 2010 Kjell Magne Fauske, http://www.fauskes.net
 #
@@ -29,6 +31,14 @@ Author: Kjell Magne Fauske
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import str
+from builtins import map
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import platform
 
 __version__ = '1.0.0dev'
@@ -61,7 +71,6 @@ import sys
 from textwrap import wrap
 from copy import deepcopy
 import codecs
-import string
 import io
 import copy
 import os
@@ -130,7 +139,7 @@ def copy_to_clipboard(text):
 
     import sys
     if sys.version < '3':
-        text_type = unicode
+        text_type = str
     else:
         text_type = str
 
@@ -223,8 +232,8 @@ def chunks(s, cl):
 def open_anything(source):
     # try to open with urllib (if source is http, ftp, or file URL)
     try:
-        from urllib import urlopen
-        to_unicode = unicode
+        from urllib.request import urlopen
+        to_unicode = str
     except ImportError: # Python3
         from urllib.request import urlopen
         import urllib.error
@@ -352,9 +361,9 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y):
     py = abs((cos(ang) * (cpy - y) - sin(ang) * (cpx - x)) * 0.5) ** 2.0
     rpx = rpy = 0.0
     if abs(rx) > 0.0:
-        rpx = px / (rx ** 2.0)
+        rpx = old_div(px, (rx ** 2.0))
     if abs(ry) > 0.0:
-        rpy = py / (ry ** 2.0)
+        rpy = old_div(py, (ry ** 2.0))
     pl = rpx + rpy
     if pl > 1.0:
         pl = pl ** 0.5
@@ -362,18 +371,18 @@ def calc_arc(cpx, cpy, rx, ry, ang, fa, fs, x, y):
         ry *= pl
     carx = sarx = cary = sary = 0.0
     if abs(rx) > 0.0:
-        carx = cos(ang) / rx
-        sarx = sin(ang) / rx
+        carx = old_div(cos(ang), rx)
+        sarx = old_div(sin(ang), rx)
     if abs(ry) > 0.0:
-        cary = cos(ang) / ry
-        sary = sin(ang) / ry
+        cary = old_div(cos(ang), ry)
+        sary = old_div(sin(ang), ry)
     x0 = carx * cpx + sarx * cpy
     y0 = (-sary) * cpx + cary * cpy
     x1 = carx * x + sarx * y
     y1 = (-sary) * x + cary * y
     d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0)
     if abs(d) > 0.0:
-        sq = 1.0 / d - 0.25
+        sq = old_div(1.0, d) - 0.25
     else:
         sq = -0.25
     if sq < 0.0:
@@ -511,14 +520,14 @@ def parse_style(s):
     """Create a dictionary from the value of an inline style attribute"""
     # This version strips leading and trailing whitespace from keys and values
     if s:
-        return dict([list(map(string.strip, i.split(":"))) for i in s.split(";") if len(i)])
+        return dict([list(map(str.strip, i.split(":"))) for i in s.split(";") if len(i)])
     else:
         return {}
 
 
 class GraphicsState(object):
     """A class for handling the graphics state of an SVG element
-    
+
     The graphics state includes fill, stroke and transformations.
     """
     fill = {}
@@ -709,7 +718,7 @@ class TikZPathExporter(inkex.Effect):
                     stream = open(file_or_string, 'r')
                 except (IOError, OSError):
                     try:
-                        to_unicode=unicode
+                        to_unicode=str
                     except: # python 3
                         to_unicode=str
                     stream = io.StringIO(to_unicode(file_or_string))
@@ -914,7 +923,7 @@ class TikZPathExporter(inkex.Effect):
         except:
             pass
 
-        for svgname, tikzdata in PROPERTIES_MAP.items():
+        for svgname, tikzdata in list(PROPERTIES_MAP.items()):
             tikzname, valuetype, data = tikzdata
             value = state.fill.get(svgname) or state.stroke.get(svgname)
             if not value:
@@ -1177,10 +1186,10 @@ class TikZPathExporter(inkex.Effect):
                 # http://fontforge.sourceforge.net/bezier.html
                 qp0x, qp0y = current_pos
                 qp1x, qp1y, qp2x, qp2y = tparams
-                cp1x = qp0x + (2.0 / 3.0) * (qp1x - qp0x)
-                cp1y = qp0y + (2.0 / 3.0) * (qp1y - qp0y)
-                cp2x = cp1x + (qp2x - qp0x) / 3.0
-                cp2y = cp1y + (qp2y - qp0y) / 3.0
+                cp1x = qp0x + (old_div(2.0, 3.0)) * (qp1x - qp0x)
+                cp1y = qp0y + (old_div(2.0, 3.0)) * (qp1y - qp0y)
+                cp2x = cp1x + old_div((qp2x - qp0x), 3.0)
+                cp2y = cp1y + old_div((qp2y - qp0y), 3.0)
                 s += " .. controls (%.4f,%.4f) and (%.4f,%.4f) .. (%.4f,%.4f)" \
                      % (cp1x, cp1y, cp2x, cp2y, qp2x, qp2y)
                 current_pos = params[-2:]

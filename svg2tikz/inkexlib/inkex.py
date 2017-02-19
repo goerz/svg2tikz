@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 """
+from __future__ import division
+from builtins import str
+from builtins import object
+from past.utils import old_div
 import sys, copy, optparse, random, re
 import gettext
 from math import *
@@ -59,7 +63,7 @@ def unittouu(string):
     return retval
 
 def uutounit(val, unit):
-    return val/uuconv[unit]
+    return old_div(val,uuconv[unit])
 
 try:
     from lxml import etree
@@ -105,7 +109,7 @@ class InkOption(optparse.Option):
     TYPE_CHECKER = copy.copy(optparse.Option.TYPE_CHECKER)
     TYPE_CHECKER["inkbool"] = check_inkbool
 
-class Effect:
+class Effect(object):
     """A class for creating Inkscape SVG Effects"""
 
     def __init__(self, *args, **kwargs):
